@@ -1,4 +1,5 @@
 const Users = require('../../db/models/user_model');
+const deLinkFile = require('../../utility/deLinkFile');
 
 const Delete_User = async(req,res) => {
     try{
@@ -6,6 +7,9 @@ const Delete_User = async(req,res) => {
         let deletingUser = await Users.findById(id).exec();
 
         await Users.findByIdAndDelete(id);
+
+        if(deletingUser.profile_pic)
+            deLinkFile("uploads/"+deletingUser.profile_pic);
 
         return res.json({Message: "success"});
     } catch(err){

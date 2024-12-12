@@ -3,6 +3,7 @@ const bcrypt = require("bcryptjs");
 const UserModel = require("../../db/models/user_model");
 
 const Register = async (req, res) => {
+    console.log(req.body);
     try {
         let toAddUser = req.body;
 
@@ -21,8 +22,9 @@ const Register = async (req, res) => {
             password: hashedPassword,
         };
 
+        // const newUser = await new UserModel({...User,  profile_pic: "user_profile_pics/"+req.file.filename});
         const newUser = await new UserModel(User);
-
+        
         await newUser.save();
 
         return res.status(200).send({ Message: "User registered successfully",  newUser});

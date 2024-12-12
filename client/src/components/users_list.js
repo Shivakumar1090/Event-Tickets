@@ -1,39 +1,27 @@
 import React, { useEffect, useState } from "react";
 import { Box } from "@mui/system";
 import axios from "axios";
-import { Button, Grid, Modal, Paper, TextField, Typography } from "@mui/material";
+import { Button, Checkbox, FormControlLabel, Grid, Modal, Paper, TextField, Typography } from "@mui/material";
 import { Navigate, useNavigate } from "react-router-dom";
-import { useSelector } from "react-redux";
 
-const { GET_USERS, DELETE_USER, EDIT_USER, ADD_USER } = require("../../apis/user");
-
-const DOMAIN = process.env.REACT_APP_DOMAIN;
+const { GET_USERS, DELETE_USER, EDIT_USER, ADD_USER } = require("../apis/user");
 
 const UsersList = () => {
     const navigate = useNavigate();
-    const user = useSelector(state => state.user);
+    
     const [Data, setData] = useState([]);
     const [selectedHover, setSelectedHovered] = useState(null);
 
     const [openEdit, setOpenEdit] = useState(false);
-    const [openCreate, setOpenCreate] = useState(false);
-
-    const [Name, setName] = useState("");
-    const [Image, setImage] = useState(null);
-    const [Price, setPrice] = useState("");
-    const [grams, setGrams] = useState("");
-    const [desc, setDesc] = useState("");
 
     const [editName, setEditName] = useState("");
-    const [editDesc, setEditDesc] = useState("");
-    const [editPrice, setEditPrice] = useState("");
-    const [editGrams, setEditGrams] = useState("");
-    const [editImg, setEditImg] = useState(null);
+    const [editIsAdmin, setEditIsAdmin] = useState("");
     const [pickedId, setPickedId] = useState("");
 
     useEffect(() => {
         axios.get(GET_USERS)
             .then(async (res) => {
+                console.log(res);
                 await setData(res.data);
             })
             .catch((err) => {
@@ -51,39 +39,14 @@ const UsersList = () => {
             })
     }
 
-    const addHandler = (e) => {
-        e.preventDefault();
-
-        const newProd = new FormData();
-        newProd.append("name", Name);
-        newProd.append("img", Image);
-        newProd.append("price", Price);
-        newProd.append("grams", grams);
-        newProd.append("desc", desc);
-
-        axios
-            .post(ADD_USER, newProd)
-            .then(() => {
-                window.location.reload();
-            })
-            .catch((err) => {
-                console.log(err);
-            });
-    };
-
     const editHandler = (id) => {
-        const editData = new FormData();
-        editData.append("name", editName);
-        editData.append("desc", editDesc);
-        editData.append("grams", editGrams);
-        editData.append("price", editPrice);
-        editData.append("img", editImg);
+        const editData = {
+            "name": editName,
+            "isAdmin": editIsAdmin
+        }
+        console.log(editData);
 
-        axios.put(EDIT_USER + id, editData, {
-            headers: {
-                Authorization: `Bearer ${window.localStorage.getItem("token")}`,
-            },
-        })
+        axios.put(EDIT_USER + id, editData)
             .then(() => {
                 window.location.reload();
             })
@@ -94,7 +57,7 @@ const UsersList = () => {
 
     const editBox = (
         <Box style={ModalStyle}>
-            <Typography style={heading}>Edit this Product</Typography>
+            <Typography style={heading}>Edit this User</Typography>
             <TextField
                 style={input}
                 variant="standard"
@@ -102,35 +65,16 @@ const UsersList = () => {
                 label='Name'
                 onChange={(e) => setEditName(e.target.value)}
             />
-            <TextField
-                style={input}
-                defaultValue={editGrams}
-                label='Grams'
-                variant="standard"
-                onChange={(e) => setEditGrams(e.target.value)}
+            <FormControlLabel
+                control={
+                    <Checkbox
+                        checked={editIsAdmin}
+                        onChange={(e) => setEditIsAdmin(e.target.checked)}
+                        color="primary"
+                    />
+                }
+                label="Is Admin"
             />
-            <TextField
-                style={input}
-                defaultValue={editPrice}
-                label='price'
-                variant="standard"
-                onChange={(e) => setEditPrice(e.target.value)}
-            />
-            <TextField
-                style={input}
-                defaultValue={editDesc}
-                variant="standard"
-                multiline
-                label='Description'
-                onChange={(e) => setEditDesc(e.target.value)}
-            />
-            <Box textAlign='left' padding='5px'>
-                <input
-                    type='file'
-                    size='medium'
-                    onChange={(e) => setEditImg(e.target.files[0])}
-                />
-            </Box>
             <Button
                 onClick={() => editHandler(pickedId)}
                 style={{ width: '200px', background: '#222', color: '#fff', marginTop: '10px' }}
@@ -138,96 +82,47 @@ const UsersList = () => {
         </Box>
     )
 
-    const createBox = (
-        <Box style={ModalStyle}>
-            <Typography style={heading}>Create a new Product</Typography>
-            <TextField
-                style={input}
-                variant="standard"
-                value={Name}
-                label='Name'
-                onChange={(e) => setName(e.target.value)}
-            />
-            <TextField
-                style={input}
-                variant="standard"
-                value={desc}
-                multiline
-                label='Description'
-                onChange={(e) => setDesc(e.target.value)}
-            />
-            <TextField
-                style={input}
-                variant="standard"
-                value={Price}
-                label='Price'
-                onChange={(e) => setPrice(e.target.value)}
-            />
-            <TextField
-                style={input}
-                variant="standard"
-                value={grams}
-                label='Grams'
-                onChange={(e) => setGrams(e.target.value)}
-            />
-            <Box textAlign='left' padding='5px'>
-                <input
-                    type='file'
-                    size='medium'
-                    onChange={(e) => setImage(e.target.files[0])}
-                />
-            </Box>
-            <Button
-                style={{ width: '200px', background: '#222', color: '#fff', marginTop: '10px' }}
-                onClick={addHandler}
-            >Add Product</Button>
-        </Box>
-    )
 
-
-    return (<>{user.isAdmin ?
+    return (<>{true ?
         <Box padding='30px'>
             <Box display='flex' justifyContent='space-between'>
-                <Typography style={heading}>Products</Typography>
-                <Button style={addBtn} onClick={() => setOpenCreate(true)}>Add a product</Button>
+                <Typography style={heading}>All Users</Typography>
+                <Button style={addBtn} onClick={() => Navigate("/register")}>Add a User</Button>
             </Box>
             <Grid container rowSpacing={1} columnSpacing={{ xs: 1, sm: 2, md: 3 }}>
                 {
-                    Data.map((product, hoverkey) => {
+                    Data.map((user, hoverkey) => {
                         return (
-                            <Grid item xs={6} key={product._id}>
+                            <Grid item xs={6} key={user._id}>
                                 <Paper style={row}
-                                    key={product._id}
-                                    hoverkey={product._id}
+                                    key={user._id}
+                                    hoverkey={user._id}
                                     elevation={hoverkey === selectedHover ? 3 : 0}
                                     onMouseOut={() => setSelectedHovered(null)}
                                     onMouseOver={() => setSelectedHovered(hoverkey)}
                                 >
                                     <Box display='flex'>
-                                        <img src={`${DOMAIN}/${product.img}`} alt='..' style={img}></img>
-                                        <Typography style={name} >{product.name}</Typography>
+                                        {/* <img src={`${DOMAIN}/${user.img}`} alt='..' style={img}></img> */}
+                                        <Typography style={name} >{user.name}</Typography>
                                         <Box style={{ marginTop: 'auto', marginBottom: 'auto', }}>
-                                            <Typography style={word}>{product.grams} grams</Typography>
-                                            <Typography style={word} fontWeight='bold'>₹ {product.price}</Typography>
+                                            <Typography style={word}>{user.email} email</Typography>
+                                            {/* <Typography style={word} fontWeight='bold'> {user.price}</Typography> */}
                                         </Box>
                                     </Box>
                                     <Box style={{ marginTop: 'auto', marginBottom: 'auto', }}>
                                         <Button onClick={() => {
-                                            setEditName(product.name);
-                                            setEditGrams(product.grams);
-                                            setEditPrice(product.price);
-                                            setEditImg(product.img)
-                                            setEditDesc(product.desc);
-                                            setPickedId(product._id);
+                                            setEditName(user.name);
+                                            setEditIsAdmin(user.isAdmin);
+                                            setPickedId(user._id);
                                             setOpenEdit(true);
                                         }}
-                                            style={{ padding: '5px', background: '#eb8546', color: '#fff', textTransform: "capitalize", marginRight: '12px' }}
+                                            style={{ padding: '5px', background: '#550300', color: '#fff', textTransform: "capitalize", marginRight: '12px' }}
                                         >
                                             Edit
                                         </Button>
                                         <Button
-                                            style={{ padding: '5px', background: '#ed4253', color: '#fff', textTransform: "capitalize", }}
-                                            onClick={() => deleteHandler(product._id)}
+                                            style={{ padding: '5px', background: '#13181E', color: '#fff', textTransform: "capitalize", }}
+                                            onClick={() => deleteHandler(user._id)}
                                         >
                                             Delete
                                         </Button>
@@ -239,7 +134,6 @@ const UsersList = () => {
                 }
             </Grid>
             <Modal open={openEdit} onClose={() => setOpenEdit(false)}>{editBox}</Modal>
-            <Modal open={openCreate} onClose={() => setOpenCreate(false)}>{createBox}</Modal>
         </Box> : <Navigate to="/" />}</>
     );
 }
@@ -249,24 +143,25 @@ const row = {
     padding: '10px',
     justifyContent: 'space-between',
     marginBottom: '15px',
-    color: '#9B4F50',
     borderBottom: '1px solid #aaa',
     // borderRight: '1px solid #eee',
 }
 
 const addBtn = {
     fontSize: '17px',
-    color: '#791314',
+    color: '#000',
     textDecoration: 'underline',
     textTransform: "capitalize",
 }
 
 const name = {
-    fontSize: '22px',
+    fontSize: '25px',
     textAlign: 'center',
     marginTop: 'auto',
     marginBottom: 'auto',
     marginLeft: '10px',
+    fontWeight: 500,
+    textTransform: 'capitalize'
 }
 
 const word = {
@@ -312,6 +207,9 @@ const ModalStyle = {
     paddingRight: "3rem",
     paddingTop: '1rem',
     paddingBottom: '1rem',
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
 }
 
 export default UsersList;
